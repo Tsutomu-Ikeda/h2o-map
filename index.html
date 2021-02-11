@@ -26,10 +26,10 @@
     <h1>H2Oの適用範囲と所要時間の概算</h1>
     <div id="map-wrapper">
       <svg id="map" width="100%" height="100%" viewbox="0 0 800 400">
-        <image href="/static/contourf.svg" x="800" y="800" width="2400" height="2400" opacity="0.9"/>
-        <image href="/static/map.svg" x="0" y="0" width="4000" height="4000"/>
+        <image href="./static/contourf.svg" x="800" y="800" width="2400" height="2400" opacity="0.9"/>
+        <image href="./static/map.svg" x="0" y="0" width="4000" height="4000"/>
         <svg x="2800" y="2000" width="200" height="1000" viewbox="2000 0 400 2400">
-          <image href="/static/colorbar.svg" x="0" y="0" width="2400" height="2400"/>
+          <image href="./static/colorbar.svg" x="0" y="0" width="2400" height="2400"/>
         </svg>
         <g id="shops"></g>
       </svg>
@@ -214,7 +214,7 @@
         const [x, y] = getPosition(lati, long);
         if (shop.type === "station") {
           const width = height = 20 * (zoomParam ** -viewBox.zoomRatio);
-          return `<image id="shop-${shop.id}" href="/static/train-24px.svg" width="${width}" height="${height}" x="${x - width / 2}" y="${y - height / 2}" />`
+          return `<image id="shop-${shop.id}" href="./static/train-24px.svg" width="${width}" height="${height}" x="${x - width / 2}" y="${y - height / 2}" />`
         } else {
           return `<circle id="shop-${shop.id}" cx="${x}" cy="${y}" r="${ 7 * Math.sqrt(zoomParam ** -viewBox.zoomRatio)}" fill="${getColor(shop)}" stroke="#333"/>`
         }
@@ -222,7 +222,7 @@
 
       const updateShops = async () => {
         if (shops.length === 0) {
-          const resp = await fetch("/data/shops.json");
+          const resp = await fetch("./data/shops.json");
           shops = await resp.json();
           console.log(shops.filter((item) => item.type === "station").map((item, index) => ({
             ...item,
