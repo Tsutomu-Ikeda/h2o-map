@@ -8,10 +8,21 @@
     <title>tomtsutom.com | H2Oの適用範囲の概算と所要時間の推定</title>
 
     <style>
+      #map-display-block {
+        display: block;
+        width: 100%;
+      }
+
       #map-wrapper {
-        width: 90%;
-        max-width: 1000px;
+        width: 60%;
         float: left;
+        display: block;
+      }
+
+      #map {
+        background-color: #faf6ed;
+        float: left;
+        display: block;
       }
 
       #shop-detail {
@@ -19,22 +30,37 @@
         width: calc(100vw - min(90%, 1000px) - 100px);
         float: left;
       }
+
+      #notes {
+        margin-top: 20px;
+        width: 100vw;
+      }
     </style>
   </head>
 
   <body>
     <h1>H2Oの適用範囲の概算と所要時間の推定</h1>
-    <div id="map-wrapper">
-      <svg id="map" width="100%" height="100%" viewbox="0 0 800 400">
-        <image href="./static/contourf.svg" x="800" y="800" width="2400" height="2400" opacity="0.9"/>
-        <image href="./static/map.svg" x="0" y="0" width="4000" height="4000"/>
-        <svg x="2800" y="2000" width="200" height="1000" viewbox="2000 0 400 2400">
-          <image href="./static/colorbar.svg" x="0" y="0" width="2400" height="2400"/>
+    <div id="map-display-block">
+      <div id="map-wrapper">
+        <svg id="map" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 800 400">
+          <image href="./static/contourf.svg" x="800" y="800" width="2400" height="2400"/>
+          <image href="./static/map.svg" x="0" y="0" width="4000" height="4000"/>
+          <svg x="2800" y="2000" width="200" height="1000" viewbox="2000 0 400 2400">
+            <image href="./static/colorbar.svg" x="0" y="0" width="2400" height="2400"/>
+          </svg>
+          <g id="shops"></g>
         </svg>
-        <g id="shops"></g>
-      </svg>
+      </div>
+      <div id="shop-detail"></div>
+      <div id="map-wrapper-size-adjuster" style="width: 100%"></div>
     </div>
-    <div id="shop-detail"></div>
+
+    <div id="notes">
+      <h2>注意事項</h2>
+      <div>
+        このサイトは個人的に作ったものであり、H2O適用範囲を保証するものではありません。
+      </div>
+    </div>
     <script>
       let viewBox = {
         x: 0,
@@ -68,11 +94,7 @@
       }
 
       const dispHome = () => {
-        const previousViewBox = localStorage.getItem("viewBox");
-        localStorage.setItem("viewBox", viewBox);
-        if (previousViewBox) {
-          viewBox = JSON.parse(previousViewBox);
-        } else {
+        const onError = () => {
           const [cx, cy] = getPosition(...getHome());
 
           viewBox = {
@@ -83,7 +105,20 @@
           localStorage.setItem("viewBox", JSON.stringify(viewBox));
         }
 
-        updateViewBox(viewBox);
+        try {
+          const previousViewBox = localStorage.getItem("viewBox");
+          localStorage.setItem("viewBox", viewBox);
+          if (previousViewBox) {
+            viewBox = JSON.parse(previousViewBox);
+          } else {
+            onError()
+          }
+          updateViewBox(viewBox);
+        } catch  {
+          onError()
+          updateViewBox(viewBox);
+        }
+
       };
 
       const getPosition = (lati, long) => {
@@ -224,11 +259,6 @@
         if (shops.length === 0) {
           const resp = await fetch("./data/shops.json");
           shops = await resp.json();
-          console.log(shops.filter((item) => item.type === "station").map((item, index) => ({
-            ...item,
-            id: index + 1,
-            costs: null
-          })));
         }
         shopsElement().innerHTML = shops
           .sort((a, b) => {
@@ -266,14 +296,25 @@
         });
       };
 
+      const onWindowResized = (ev) => {
+        document
+          .querySelector("#map-wrapper-size-adjuster")
+          .style
+          .height = `${document
+          .querySelector("#map")
+          .clientHeight}px`;
+      }
+
       updateShops();
       dispHome();
+      onWindowResized();
 
       mapSvgElement().style.cursor = "pointer";
       mapSvgElement().onmousedown = onScrollStart;
 
       mapSvgElement().onmousewheel = onWheel;
       window.onmouseup = onScrollEnd;
+      window.onresize = onWindowResized;
     </script>
   </body>
 
